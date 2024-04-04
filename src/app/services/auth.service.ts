@@ -1,5 +1,6 @@
 import { Injectable, OnDestroy, inject } from '@angular/core';
 import { Auth, createUserWithEmailAndPassword, signInWithEmailAndPassword, user } from '@angular/fire/auth';
+import { signOut } from 'firebase/auth';
 import { Subscription } from 'rxjs';
 
 @Injectable({
@@ -17,6 +18,10 @@ export class AuthService {
 
   loginUsuario(email:string,password:string){
     return signInWithEmailAndPassword(this.auth,email,password)
+  }
+
+  logout(){
+    return signOut(this.auth);
   }
 
 
