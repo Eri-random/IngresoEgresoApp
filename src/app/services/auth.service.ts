@@ -1,7 +1,7 @@
 import { Injectable, OnDestroy, inject } from '@angular/core';
 import { Auth, authState, createUserWithEmailAndPassword, signInWithEmailAndPassword, user } from '@angular/fire/auth';
 import { signOut } from 'firebase/auth';
-import { Subscription } from 'rxjs';
+import { Subscription, map } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -30,6 +30,12 @@ export class AuthService {
 
   logout(){
     return signOut(this.auth);
+  }
+
+  isAuth(){
+    return authState(this.auth).pipe(
+      map(fbUser => fbUser!= null)
+    )
   }
 
 
