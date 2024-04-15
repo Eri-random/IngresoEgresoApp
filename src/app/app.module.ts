@@ -18,7 +18,7 @@ import { SidebarComponent } from './shared/sidebar/sidebar.component';
 
 import { provideFirebaseApp, getApp, initializeApp } from '@angular/fire/app';
 import { getFirestore, provideFirestore } from '@angular/fire/firestore';
-import { environment } from 'src/environments/environment';
+import { environment } from 'src/environments/environments';
 import { getAuth, provideAuth } from '@angular/fire/auth';
 
 
