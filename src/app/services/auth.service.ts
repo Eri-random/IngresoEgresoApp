@@ -33,7 +33,7 @@ export class AuthService {
 
         const newUser = new Usuario(user.uid,nombre,email);
 
-        const collectionIngresoEgreso = collection(this.firestore, `${user.uid}/usuario/items`);
+        const collectionIngresoEgreso = collection(this.firestore, `${user.uid}/usuario`);
  
         const documentRef = doc(collectionIngresoEgreso);
      
