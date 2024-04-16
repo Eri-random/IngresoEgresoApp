@@ -18,7 +18,11 @@ export class AuthService {
   private auth: Auth = inject(Auth);
   private firestore: Firestore = inject(Firestore);
   usersCollection!: CollectionReference;
+  private _user: Usuario;
 
+  get user(){
+    return this._user;
+  }
   
   constructor(
     private store: Store<AppState>
@@ -36,11 +40,13 @@ export class AuthService {
           const userData:any = docSnapshot.data();
           console.log(userData);
           const user = Usuario.fromFirebase(userData);
+          this._user = user;
           this.store.dispatch(authAction.setUser({user}))
         }catch(e){
           console.log(e)
         }
       }else{
+        this._user = null;
         this.store.dispatch(authAction.unSetUser());
       }
     })
