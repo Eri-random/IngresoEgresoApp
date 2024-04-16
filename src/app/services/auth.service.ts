@@ -1,9 +1,14 @@
 import { Injectable, inject } from '@angular/core';
-import { Auth, authState, createUserWithEmailAndPassword, signInWithEmailAndPassword } from '@angular/fire/auth';
+import { Auth, authState, createUserWithEmailAndPassword, signInWithEmailAndPassword, user } from '@angular/fire/auth';
 import { signOut } from 'firebase/auth';
-import { Subscription, map } from 'rxjs';
+import { Observable, Subscription, map } from 'rxjs';
 import { Usuario } from '../models/usuario.model';
-import { Firestore, collection, collectionData, addDoc, CollectionReference, DocumentReference, doc, setDoc} from '@angular/fire/firestore';
+import { Firestore, collection, collectionData, addDoc, CollectionReference, DocumentReference, setDoc} from '@angular/fire/firestore';
+import { Store } from '@ngrx/store';
+import { AppState } from '../app.reducer';
+import * as authAction from '../auth/auth.actions';
+import { doc, getDoc, getDocs, onSnapshot } from "firebase/firestore";
+
 
 @Injectable({
   providedIn: 'root'
@@ -16,14 +21,28 @@ export class AuthService {
 
   
   constructor(
+    private store: Store<AppState>
   ) {
    }
 
   initAuthListener(){
-    authState(this.auth).subscribe(fuser =>{
-      console.log(fuser)
-      console.log(fuser?.uid)
-      console.log(fuser?.email)
+    authState(this.auth).subscribe(async (fuser:any) =>{
+      if(fuser){
+        try{
+          const collectionRef = collection(this.firestore, `${fuser.uid}/usuario/items`);
+          const querySnapshot = await getDocs(collectionRef);
+          const docSnapshot = querySnapshot.docs[0];
+          // Obtener los datos del documento
+          const userData:any = docSnapshot.data();
+          console.log(userData);
+          const user = Usuario.fromFirebase(userData);
+          this.store.dispatch(authAction.setUser({user}))
+        }catch(e){
+          console.log(e)
+        }
+      }else{
+        this.store.dispatch(authAction.unSetUser());
+      }
     })
   }
 
