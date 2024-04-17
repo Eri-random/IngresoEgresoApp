@@ -8,6 +8,7 @@ import { Store } from '@ngrx/store';
 import { AppState } from '../app.reducer';
 import * as authAction from '../auth/auth.actions';
 import { doc, getDoc, getDocs, onSnapshot } from "firebase/firestore";
+import { unSetItems } from '../ingreso-egreso/ingreso-egreso.action';
 
 
 @Injectable({
@@ -47,6 +48,7 @@ export class AuthService {
         }
       }else{
         this._user = null;
+        this.store.dispatch(unSetItems());
         this.store.dispatch(authAction.unSetUser());
       }
     })
