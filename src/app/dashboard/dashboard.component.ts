@@ -14,6 +14,7 @@ import { IngresoEgreso } from '../models/ingreso-egreso.model';
 export class DashboardComponent implements OnInit, OnDestroy{
 
   userSubs:Subscription;
+  ingresosSubs:Subscription;
 
   constructor(private store:Store<AppState>,
     private ingresoEgresoService:IngresoEgresoService
@@ -25,13 +26,14 @@ export class DashboardComponent implements OnInit, OnDestroy{
         filter(auth => auth.user != null)
       )
       .subscribe(({user}) =>{
-          this.ingresoEgresoService.initIngresosEgresosListener(user.uid).subscribe((items:IngresoEgreso[]) =>{
+          this.ingresosSubs = this.ingresoEgresoService.initIngresosEgresosListener(user.uid).subscribe((items:IngresoEgreso[]) =>{
             this.store.dispatch(ingresoEgresoActions.setItems({items}))
           });
       });
   }
 
   ngOnDestroy(): void {
+    this.ingresosSubs.unsubscribe();
     this.userSubs.unsubscribe();
   }
 
