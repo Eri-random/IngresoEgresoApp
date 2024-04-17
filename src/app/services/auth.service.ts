@@ -1,15 +1,14 @@
-import { Injectable, inject } from '@angular/core';
-import { Auth, authState, createUserWithEmailAndPassword, signInWithEmailAndPassword, user } from '@angular/fire/auth';
-import { signOut } from 'firebase/auth';
-import { Observable, Subscription, map } from 'rxjs';
+import { Injectable } from '@angular/core';
+import { Subscription, map } from 'rxjs';
 import { Usuario } from '../models/usuario.model';
-import { Firestore, collection, collectionData, addDoc, CollectionReference, DocumentReference, setDoc} from '@angular/fire/firestore';
 import { Store } from '@ngrx/store';
 import { AppState } from '../app.reducer';
-import * as authAction from '../auth/auth.actions';
-import { doc, getDoc, getDocs, onSnapshot } from "firebase/firestore";
+
+import 'firebase/firestore';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
+
+import * as authAction from '../auth/auth.actions';
 import * as ingresoEgresoActions from '../ingreso-egreso/ingreso-egreso.action';
 
 
@@ -18,8 +17,6 @@ import * as ingresoEgresoActions from '../ingreso-egreso/ingreso-egreso.action';
 })
 export class AuthService {
 
-  private auth: AngularFireAuth = inject(AngularFireAuth,);
-  private firestore: AngularFirestore = inject(AngularFirestore);
   userSubscription: Subscription;
   private _user: Usuario;
 
@@ -28,6 +25,8 @@ export class AuthService {
   }
   
   constructor(
+    public auth: AngularFireAuth,
+    private firestore: AngularFirestore,
     private store: Store<AppState>
   ) {
    }
@@ -38,7 +37,7 @@ export class AuthService {
         // existe
         this.userSubscription = this.firestore.doc(`${ fuser.uid }/usuario`).valueChanges()
           .subscribe( (firestoreUser: any) => {
-          
+          console.log(firestoreUser)
 
             const user = Usuario.fromFirebase( firestoreUser );
             this._user = user;
@@ -49,7 +48,7 @@ export class AuthService {
       } else {
         // no existe
         this._user = null;
-        this.userSubscription.unsubscribe();
+        this.userSubscription?.unsubscribe();
         this.store.dispatch( authAction.unSetUser() );
         this.store.dispatch( ingresoEgresoActions.unSetItems() );
       }

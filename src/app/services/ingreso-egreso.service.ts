@@ -10,9 +10,10 @@ import { AngularFirestore } from '@angular/fire/compat/firestore';
 })
 export class IngresoEgresoService {
 
-  private firestore: AngularFirestore = inject(AngularFirestore);
 
-  constructor(private authService: AuthService) { }
+  constructor(private authService: AuthService,
+    private firestore: AngularFirestore,
+  ) { }
 
   crearIngresoEgreso(ingresoEgreso:IngresoEgreso){
     const uid = this.authService.user.uid;
