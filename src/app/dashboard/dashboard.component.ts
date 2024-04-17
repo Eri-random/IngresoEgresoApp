@@ -18,13 +18,18 @@ export class DashboardComponent implements OnInit, OnDestroy{
   ){}
 
   ngOnInit(): void {
-   this.userSubs = this.store.select('user')
-    .pipe(
-      filter(auth => auth.user != null)
-    )
-    .subscribe(({user}) =>{
-      this.ingresoEgresoService.initIngresosEgresosListener(user.uid)
-    })
+    this.userSubs = this.store.select('user')
+      .pipe(
+        filter(auth => auth.user != null)
+      )
+      .subscribe(async ({user}) =>{
+        try {
+          const resultado = await this.ingresoEgresoService.initIngresosEgresosListener(user.uid);
+          console.log(resultado);
+        } catch (error) {
+          console.error("Error al obtener ingresos y egresos:", error);
+        }
+      });
   }
 
   ngOnDestroy(): void {

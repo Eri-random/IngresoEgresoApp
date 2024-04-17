@@ -25,13 +25,20 @@ export class IngresoEgresoService {
   }
 
   async initIngresosEgresosListener(uid:string){
-    const collectionRef = collection(this.firestore, `${uid}/ingresos-egresos/items`);
-    onSnapshot(collectionRef, (querySnapshot) => {
-      return querySnapshot.docChanges().map(({doc}) => ({
-          uid: doc.id,
-          ...doc.data()
-        })
-      )
-    })
+    return new Promise((resolve, reject) => {
+      const collectionRef = collection(this.firestore, `${uid}/ingresos-egresos/items`);
+      onSnapshot(collectionRef, (querySnapshot) => {
+        const modifiedArray = querySnapshot.docChanges().map(({doc}) => {
+          return {
+            uid: doc.id,
+            ...doc.data()
+          };
+        });
+  
+        resolve(modifiedArray); // Resuelve la promesa con el arreglo modificado
+      }, (error) => {
+        reject(error); // Rechaza la promesa en caso de error
+      });
+    });
   }
 }
