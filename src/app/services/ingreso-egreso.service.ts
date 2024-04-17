@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { IngresoEgreso } from '../models/ingreso-egreso.model';
 import { AuthService } from './auth.service';
 import { map } from 'rxjs';
