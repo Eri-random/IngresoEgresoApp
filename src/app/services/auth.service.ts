@@ -8,7 +8,9 @@ import { Store } from '@ngrx/store';
 import { AppState } from '../app.reducer';
 import * as authAction from '../auth/auth.actions';
 import { doc, getDoc, getDocs, onSnapshot } from "firebase/firestore";
-import { unSetItems } from '../ingreso-egreso/ingreso-egreso.action';
+import { AngularFirestore } from '@angular/fire/compat/firestore';
+import { AngularFireAuth } from '@angular/fire/compat/auth';
+import * as ingresoEgresoActions from '../ingreso-egreso/ingreso-egreso.action';
 
 
 @Injectable({
@@ -16,12 +18,12 @@ import { unSetItems } from '../ingreso-egreso/ingreso-egreso.action';
 })
 export class AuthService {
 
-  private auth: Auth = inject(Auth);
-  private firestore: Firestore = inject(Firestore);
-  usersCollection!: CollectionReference;
+  private auth: AngularFireAuth = inject(AngularFireAuth,);
+  private firestore: AngularFirestore = inject(AngularFirestore);
+  userSubscription: Subscription;
   private _user: Usuario;
 
-  get user(){
+  get user() {
     return this._user;
   }
   
@@ -31,56 +33,55 @@ export class AuthService {
    }
 
   initAuthListener(){
-    authState(this.auth).subscribe(async (fuser:any) =>{
-      if(fuser){
-        try{
-          const collectionRef = collection(this.firestore, `${fuser.uid}/usuario/items`);
-          const querySnapshot = await getDocs(collectionRef);
-          const docSnapshot = querySnapshot.docs[0];
-          // Obtener los datos del documento
-          const userData:any = docSnapshot.data();
-          console.log(userData);
-          const user = Usuario.fromFirebase(userData);
-          this._user = user;
-          this.store.dispatch(authAction.setUser({user}))
-        }catch(e){
-          console.log(e)
-        }
-      }else{
+    this.auth.authState.subscribe( fuser => {
+      if ( fuser ) {
+        // existe
+        this.userSubscription = this.firestore.doc(`${ fuser.uid }/usuario`).valueChanges()
+          .subscribe( (firestoreUser: any) => {
+          
+
+            const user = Usuario.fromFirebase( firestoreUser );
+            this._user = user;
+            this.store.dispatch(authAction.setUser({ user }) );
+            
+          })
+
+      } else {
+        // no existe
         this._user = null;
-        this.store.dispatch(unSetItems());
-        this.store.dispatch(authAction.unSetUser());
+        this.userSubscription.unsubscribe();
+        this.store.dispatch( authAction.unSetUser() );
+        this.store.dispatch( ingresoEgresoActions.unSetItems() );
       }
-    })
+
+    });
   }
 
   crearUsuario(nombre:string,email:string,password:string){
-    return createUserWithEmailAndPassword(this.auth,email,password)
-      .then(({user}) =>{
+     // console.log({ nombre, email, password });
+     return this.auth.createUserWithEmailAndPassword( email, password )
+     .then( ({ user }) => {
 
-        const newUser = new Usuario(user.uid,nombre,email);
+       const newUser = new Usuario( user.uid, nombre, user.email );
 
-        const collectionIngresoEgreso = collection(this.firestore, `${user.uid}/usuario/items`);
- 
-        const documentRef = doc(collectionIngresoEgreso);
-     
-        return setDoc(documentRef, { ...newUser })
+       return this.firestore.doc(`${ user.uid }/usuario`).set({ ...newUser });
 
-      })
+     });
+
   }
 
   loginUsuario(email:string,password:string){
-    return signInWithEmailAndPassword(this.auth,email,password)
+    return this.auth.signInWithEmailAndPassword( email, password );  
   }
 
   logout(){
-    return signOut(this.auth);
+    return this.auth.signOut();
   }
 
   isAuth(){
-    return authState(this.auth).pipe(
-      map(fbUser => fbUser!= null)
-    )
+  return this.auth.authState.pipe(
+      map( fbUser => fbUser != null )
+    );
   }
 
 

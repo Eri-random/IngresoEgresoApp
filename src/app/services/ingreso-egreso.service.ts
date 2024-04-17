@@ -1,45 +1,39 @@
 import { Injectable, inject } from '@angular/core';
-import { collection, doc, getDocs, setDoc } from 'firebase/firestore';
 import { IngresoEgreso } from '../models/ingreso-egreso.model';
 import { AuthService } from './auth.service';
-import { Firestore, onSnapshot } from '@angular/fire/firestore';
-import { Observable } from 'rxjs';
+import { map } from 'rxjs';
+import { AngularFirestore } from '@angular/fire/compat/firestore';
+
 
 @Injectable({
   providedIn: 'root'
 })
 export class IngresoEgresoService {
 
-  private firestore: Firestore = inject(Firestore);
+  private firestore: AngularFirestore = inject(AngularFirestore);
 
   constructor(private authService: AuthService) { }
 
   crearIngresoEgreso(ingresoEgreso:IngresoEgreso){
-    //TODO
     const uid = this.authService.user.uid;
 
-    const collectionIngresoEgreso = collection(this.firestore, `${uid}/ingresos-egresos/items`);
- 
-    const documentRef = doc(collectionIngresoEgreso);
- 
-    return setDoc(documentRef, { ...ingresoEgreso })
+    delete ingresoEgreso.uid;
+
+    return this.firestore.doc(`${ uid }/ingresos-egresos`)
+        .collection('items')
+        .add({ ...ingresoEgreso });
   }
 
   initIngresosEgresosListener(uid:string){
-    const collectionRef = collection(this.firestore, `${uid}/ingresos-egresos/items`);
-    return new Observable<any[]>((observer) => {
-      const unsubscribe = onSnapshot(collectionRef, (querySnapshot) => {
-        const modifiedArray = querySnapshot.docChanges().map(({ doc }) => {
-          return {
-            uid: doc.id,
-            ...doc.data()
-          };
-        });
-        observer.next(modifiedArray);
-      }, (error) => {
-        observer.error(error);
-      });
-      return () => unsubscribe();
-    });
+    return this.firestore.collection(`${ uid }/ingresos-egresos/items`)
+    .snapshotChanges()
+    .pipe(
+      map( snapshot => snapshot.map( doc => ({
+            uid: doc.payload.doc.id,
+            ...doc.payload.doc.data() as any
+          })
+        )
+      )
+    );
   }
 }
