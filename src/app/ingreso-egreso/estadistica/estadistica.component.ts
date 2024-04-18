@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
+import { ChartData, ChartType } from 'chart.js';
 import { AppState } from 'src/app/app.reducer';
 import { IngresoEgreso } from 'src/app/models/ingreso-egreso.model';
 
@@ -31,10 +32,10 @@ export class EstadisticaComponent implements OnInit {
     for(const item of items){
       if(item.tipo === 'ingreso'){
         this.totalIngresos += item.monto;
-        this.ingresos +=1
+        this.ingresos ++;
       }else{
         this.totalEgresos += item.monto;
-        this.egresos +=1
+        this.egresos ++;
       }
     }
   }
